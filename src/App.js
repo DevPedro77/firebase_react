@@ -16,7 +16,8 @@ import {
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  onAuthStateChanged
 } from 'firebase/auth'
 
 import './app.css';
@@ -55,20 +56,29 @@ function App() {
 
   }, [])
 
+  useEffect(() =>{
+    async function checkLogin() {
+      onAuthStateChanged(auth, (user) => {
+        if(user){
+          console.log(user);
+          setUser(true);
+          setUserDetail({
+            uid: user.uid,
+            email: user.email
+          })
+          
+        }else{
+          setUser(false);
+          setUserDetail({})
+        }
+      })
+    }
+
+    checkLogin()
+  },[])
+
 
   async function handleAdd(){
-    // await setDoc(doc(db, "posts", "12345"), {
-    //   titulo: titulo,
-    //   autor: autor,
-    // })
-    // .then(() => {
-    //   console.log("DADOS REGISTRADO NO BANCO!")
-    // })
-    // .catch((error) => {
-    //   console.log("GEROU ERRO" + error)
-    // }) 
-
-
     await addDoc(collection(db, "posts"), {
       titulo: titulo,
       autor: autor,
@@ -196,6 +206,8 @@ function App() {
     setUser(false);
     setUserDetail({});
   }
+
+  
 
   return (
     <div>
