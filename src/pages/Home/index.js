@@ -6,12 +6,22 @@ function Home(){
 
   const [email, setEmail] =useState('')
   const [password, setPassword] =useState('')
+
+  function handleLogin(e){
+    e.preventDefault()
+
+    if(email !== '' && password !==''){
+      alert('Cadastrou cria')
+    }else{
+      alert('Preenche tudo ai zé cu')
+    }
+  } 
   return(
     <div className="container">
       <h1 className="title">Bem-vindo à To-Do List</h1>
       <span className="subtitle">Organize suas tarefas de forma simples e eficiente</span>
 
-      <form className="auth-container">
+      <form className="auth-container" onSubmit={handleLogin}>
         <label className="label">Email</label>
         <input 
           type="text" 
