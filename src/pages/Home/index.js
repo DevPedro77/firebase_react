@@ -1,17 +1,32 @@
 import React, {useState, useEffect} from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import './home.css';
+
+import {auth} from '../../firebaseConnection';
+import {signInWithEmailAndPassword} from 'firebase/auth'
+import { toast } from "react-toastify";
 
 function Home(){
 
   const [email, setEmail] =useState('')
   const [password, setPassword] =useState('')
 
-  function handleLogin(e){
+  const navigate = useNavigate();
+
+async  function handleLogin(e){
     e.preventDefault()
 
     if(email !== '' && password !==''){
-      alert('Cadastrou cria')
+      await signInWithEmailAndPassword(auth, email, password)
+      .then(() =>{
+        navigate('/admin', {replace: true})
+        toast.success('Logado com sucesso')
+      })
+      .catch((error) =>{
+        //lidar com error
+        toast.error('Algo deu errado!')
+      })
+
     }else{
       alert('Preenche tudo ai zé cu')
     }
