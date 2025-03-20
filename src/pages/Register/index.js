@@ -1,63 +1,65 @@
-import React, {useState, useEffect} from "react";
-import { Link, useNavigate} from "react-router-dom";
-import {auth} from '../../firebaseConnection';
-import {createUserWithEmailAndPassword} from 'firebase/auth';
-import { toast } from "react-toastify";
+import { useState } from 'react'
+import { toast } from 'react-toastify'
+import { Link } from 'react-router-dom'
+import { auth } from '../../firebaseConnection'
+import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { useNavigate } from 'react-router-dom'
 
-function Register(){
-
-  const [email, setEmail] =useState('')
-  const [password, setPassword] =useState('')
-
+export default function Register(){
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const navigate = useNavigate();
 
   async function handleRegister(e){
-    e.preventDefault()
+    e.preventDefault();
 
-    if(email !== '' && password !==''){
+    if(email !== '' && password !== ''){
       await createUserWithEmailAndPassword(auth, email, password)
-      .then(() =>{
-        navigate('/admin', {replace:true})
-        toast.success('Conta criada com sucesso!')
+      .then(() => {
+        toast.success('conta criada com sucesso')
+        navigate('/admin', { replace: true })
       })
-      .catch((error) =>{
-        toast.error('Algo deu errado!')
+      .catch(() => {
+        console.log("ERRO AO FAZER O CADASTRO")
+        toast.error('Ops, erro ao criar sua conta')
       })
+
 
     }else{
-      alert('Preenche tudo ai zé cu')
+      toast.warning("Preencha todos os campos!")
     }
-  } 
+
+
+  }
+
+
   return(
-    <div className="container">
-      <h1 className="title">Crie sua nova conta</h1>
-      <span className="subtitle">Crie sua conta e organize sua vida</span>
+    <div className="home-container">
+      <h1>Cadastre-se</h1>
+      <span>Vamos criar sua conta!</span>
 
-      <form className="auth-container" onSubmit={handleRegister}>
-        <label className="label">Email</label>
-        <input 
-          type="text" 
-          placeholder="Digite seu email"
+      <form className="form" onSubmit={handleRegister}>
+        <input
+          type="text"
+          placeholder="Digite seu email..."
           value={email}
-          onChange={ (e) => setEmail(e.target.value)}
-          />
+          onChange={(e) => setEmail(e.target.value) }
+        />
 
-        <label className="label">Senha</label>
-        <input 
-          type="password" 
-          placeholder="Digite sua senha"
+        <input
+          type="password"
+          placeholder="******"
           value={password}
-          onChange={(e) =>setPassword(e.target.value)}
-          />
+          onChange={(e) => setPassword(e.target.value) }
+        />
 
-        <button type="submit">Cadastrar</button>
+        <button type="submit" >Cadastrar</button>
       </form>
-      <Link to='/' className="navgation">
-        Já possui uma conta?
+
+      <Link className="button-link" to="/">
+        Já possui uma conta? Faça login!
       </Link>
+
     </div>
   )
 }
-
-
-export default Register;
