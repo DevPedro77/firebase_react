@@ -4,7 +4,14 @@ import { signOut } from "firebase/auth";
 
 import { 
   addDoc,
-  collection
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  where,
+  deleteDoc,
+  doc,
+  updateDoc
 } from "firebase/firestore";
 
 import './admin.css'
@@ -13,11 +20,35 @@ import { toast } from "react-toastify";
 export default function Admin(){
   const [tarefaInput, setTarefaInput] =useState('')
   const [user, setUser] = useState({});
+  const [tarefas, setTarefas] =useState([]);
+  const [edit, setEdit] =useState({})
+
 
   useEffect(() =>{
     async function loadUser() {
       const userDetail = localStorage.getItem('@detailUser');
+      console.log(userDetail)
       setUser(JSON.parse(userDetail))
+
+      if(userDetail){
+        //buscar tarefas do usuario filtrando pelo id
+        const data = JSON.parse(userDetail);
+        const tarefaRef = collection(db, "tarefas");
+        const q = query(tarefaRef, orderBy("createdAt", "desc"), where("userId", "==", data?.uid)) //query pra buscar
+        const unsub = onSnapshot(q, (snapshot)=>{
+          let lista = [];
+
+          snapshot.forEach((doc) =>{
+            lista.push({
+              id: doc?.id,
+              tarefa: doc?.data().tarefa,
+              userId: doc?.data().userId
+            })
+          })
+
+          setTarefas(lista)
+        })
+      }
     }
 
     loadUser()
@@ -30,13 +61,18 @@ export default function Admin(){
       return;
     }
 
+    if(edit?.id){
+      handleUpdateTarefa()
+      return;
+    }
+
     await addDoc(collection(db, "tarefas"),{
       tarefa: tarefaInput,
       createdAt: new Date(),
       userId: user?.uid
     })
     .then(()=>{
-      toast.success(`tarefa: ${tarefaInput}  cadastrada` )
+      toast.success("Tarefa cadastrada com sucesso!")
       setTarefaInput('')
     })
     .catch((error)=>{
@@ -49,6 +85,34 @@ export default function Admin(){
   async function handleLogout() {
     await signOut(auth);
   }
+
+  async function handleDelete(id) {
+    const docRef = doc(db, "tarefas", id) //sempre referenciando o banco
+    await deleteDoc(docRef);
+    toast.success('Tarefa concluida')
+  }
+
+  async function editTarefa(item){
+    setTarefaInput(item.tarefa)
+    setEdit(item)
+  }
+
+  async function handleUpdateTarefa() {
+    const docRef = doc(db, "tarefas", edit?.id)
+    await updateDoc(docRef,{
+      tarefa: tarefaInput
+    })
+    .then(()=>{
+      setEdit({})
+      setTarefaInput('')
+      toast.success('Sua tarefa foi editada!')
+    })
+    .catch((error)=>{
+      toast.error('Error ao atualizar sua tarefa' + error)
+      setTarefaInput('')
+    })
+  }
+
   return(
     <div className="admin-container">
       <h1>Minhas tarefas</h1>
@@ -60,16 +124,24 @@ export default function Admin(){
           onChange={(e)=> setTarefaInput(e.target.value)}
 
         />
-        <button className="btn-register" type="submit">Registrar tarefa</button>
+
+      
+        {Object.keys(edit).length > 0 ? (
+          <button className="btn-register" type="submit">Atualizar tarefa</button>
+        ): (
+          <button className="btn-register" type="submit">Registrar tarefa</button>
+        )}
       </form>
 
-      <article className="list">
-        <p>Estudar java hoje a noite</p>
-        <div>
-          <button className="btn-editar">Editar</button>
-          <button className="btn-delete">Concluir</button>
-        </div>
-      </article>
+    {tarefas.map((item) => (
+          <article className="list" key={item.id}>
+          <p>{item.tarefa}</p>
+          <div>
+            <button className="btn-editar" onClick={() => editTarefa(item)}>Editar</button>
+            <button className="btn-delete" onClick={() =>handleDelete(item.id)}>Concluir</button>
+          </div>
+        </article>
+    ))}
 
       <button className="btn-sair" onClick={handleLogout}>Sair</button>
 
